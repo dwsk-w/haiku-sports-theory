@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シリーズ・俳句スポーツ説を間に受ける</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .matrix-table {
+            border-collapse: collapse;
+        }
+        .matrix-table td, .matrix-table th {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            text-align: center;
+            min-width: 40px;
+        }
+        .matrix-header {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+        .highlight {
+            background-color: #fef08a; /* yellow-200 */
+        }
+        .problem-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+        .message-box {
+            min-height: 24px; /* Set a minimum height to prevent layout shift */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <div id="quiz-container" class="bg-white p-8 rounded-2xl shadow-lg">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2 text-center">俳句スポーツ説を間に受ける第1弾</h1>
+            <p class="text-gray-600 mb-2 text-center">ある有名俳人の俳句の口語訳を俳句に再構築しよう！</p>
+            <p id="question-counter" class="text-center text-gray-500 mb-8 font-medium"></p>
+
+
+            <div class="grid grid-cols-1 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">口語訳</label>
+                    <div id="problem-display" class="problem-box"></div>
+                </div>
+                <div>
+                    <label for="answer-input" class="block text-sm font-medium text-gray-700 mb-2">あなたの回答</label>
+                    <input type="text" id="answer-input" placeholder="目標の文字列を入力" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+            </div>
+
+            <div id="message-box" class="message-box text-center text-red-600 font-medium mb-4"></div>
+
+            <div class="text-center mb-8">
+                <button id="answerBtn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">
+                    回答する
+                </button>
+                <button id="nextQuestionBtn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 transform hover:scale-105" style="display: none;">
+                    次の問題へ
+                </button>
+            </div>
+
+            <div id="result-area" style="display: none;">
+                <div id="correct-answer-display" class="text-center text-xl font-semibold text-gray-800 bg-green-100 p-4 rounded-lg mb-4"></div>
+                <div id="distance-display" class="text-center text-2xl font-bold text-gray-900 bg-gray-100 p-6 rounded-lg"></div>
+                <div id="matrix-container" class="mt-8 overflow-x-auto">
+                    <h2 class="text-xl font-semibold mb-4 text-center">計算行列 (あなたの回答 vs 正解)</h2>
+                    <div class="flex justify-center">
+                       <table id="matrix-table" class="matrix-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="final-score-container" class="bg-white p-8 rounded-2xl shadow-lg text-center" style="display: none;">
+             <h1 class="text-3xl font-bold text-gray-900 mb-4">最終結果</h1>
+             <p class="text-gray-700 text-lg mb-2">あなたの合計スコアは...</p>
+             <p id="final-score" class="text-6xl font-bold text-blue-600 my-6"></p>
+             <p class="text-gray-600 mb-8">スコアが低いほど、あなたは俳句スポーツ説を間に受けています！</p>
+             <button id="restartBtn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">
+                もう一度挑戦する
+             </button>
+        </div>
+
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p>スコア（レーベンシュタイン距離）は、ある文字列を別の文字列に変形するために必要な、1文字の挿入、削除、置換の最小回数を表します。</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Game State ---
+        const quizData = [
+            { problem: "「正月のカラスが散り散りへあちらへ飛んでいったよ」by高野素十", correctAnswer: "ばらばらに飛んで向ふへ初鴉" },
+            { problem: "「アセビが咲いている傍の金堂の扉に私が触ったよ」by水原秋桜子", correctAnswer: "馬酔木咲く金堂の扉にわが触れぬ" },
+            { problem: "「機関車がゆっくりと止まった。その車輪のそばには夏草が生えていた」by山口誓子", correctAnswer: "夏草に気罐車の車輪来て止る" },
+            { problem: "「葛城山の裾野に寝釈迦像があるなあ」by阿波野青畝", correctAnswer: "葛城の山懐に寝釈迦かな" }
+        ];
+        let currentQuestionIndex = -1;
+        let totalScore = 0;
+        let questionsAnswered = 0;
+        const QUESTIONS_PER_GAME = 4;
+
+        // --- DOM Elements ---
+        const quizContainer = document.getElementById('quiz-container');
+        const finalScoreContainer = document.getElementById('final-score-container');
+        const questionCounter = document.getElementById('question-counter');
+        const problemDisplay = document.getElementById('problem-display');
+        const answerInput = document.getElementById('answer-input');
+        const answerBtn = document.getElementById('answerBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const messageBox = document.getElementById('message-box');
+        const resultArea = document.getElementById('result-area');
+        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+        const distanceDisplay = document.getElementById('distance-display');
+        const matrixTable = document.getElementById('matrix-table');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // --- Levenshtein Distance Calculation Logic ---
+        function calculateLevenshteinDistance(s1, s2) {
+            const dp = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+            for (let i = 0; i <= s1.length; i++) { dp[0][i] = i; }
+            for (let j = 0; j <= s2.length; j++) { dp[j][0] = j; }
+            for (let j = 1; j <= s2.length; j++) {
+                for (let i = 1; i <= s1.length; i++) {
+                    const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+                    dp[j][i] = Math.min(dp[j][i - 1] + 1, dp[j - 1][i] + 1, dp[j - 1][i - 1] + cost);
+                }
+            }
+            return { distance: dp[s2.length][s1.length], matrix: dp };
+        }
+
+        // --- UI Update Logic ---
+        function displayMatrix(matrix, s1, s2) {
+            matrixTable.innerHTML = '';
+            const header = matrixTable.createTHead();
+            const headerRow = header.insertRow();
+            headerRow.className = 'matrix-header';
+            headerRow.insertCell();
+            headerRow.insertCell().textContent = 'ø';
+            for (let i = 0; i < s1.length; i++) headerRow.insertCell().textContent = s1[i];
+
+            const body = matrixTable.createTBody();
+            const s2WithEmpty = 'ø' + s2;
+            for (let j = 0; j < matrix.length; j++) {
+                const row = body.insertRow();
+                const headerCell = row.insertCell();
+                headerCell.className = 'matrix-header';
+                headerCell.textContent = s2WithEmpty[j];
+                for (let i = 0; i < matrix[j].length; i++) {
+                    const cell = row.insertCell();
+                    cell.textContent = matrix[j][i];
+                }
+            }
+            
+            const finalRow = matrixTable.rows[matrix.length];
+            if (finalRow && finalRow.cells.length > matrix[0].length) {
+                 finalRow.cells[matrix[0].length].classList.add('highlight');
+            }
+        }
+        
+        function showMessage(msg) {
+            messageBox.textContent = msg;
+            setTimeout(() => { messageBox.textContent = ''; }, 3000);
+        }
+        
+        function startGame() {
+             totalScore = 0;
+             questionsAnswered = 0;
+             currentQuestionIndex = -1;
+             // Shuffle quiz data for replayability
+             quizData.sort(() => Math.random() - 0.5);
+             finalScoreContainer.style.display = 'none';
+             quizContainer.style.display = 'block';
+             loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            const question = quizData[currentQuestionIndex];
+            
+            problemDisplay.textContent = question.problem;
+            answerInput.value = '';
+            questionCounter.textContent = `問題 ${questionsAnswered + 1} / ${QUESTIONS_PER_GAME}`;
+            
+            resultArea.style.display = 'none';
+            answerBtn.style.display = 'inline-block';
+            nextQuestionBtn.style.display = 'none';
+            messageBox.textContent = '';
+            answerInput.focus();
+        }
+        
+        function checkAnswer() {
+            const userAnswer = answerInput.value;
+            if (userAnswer === "") {
+                showMessage("回答を入力してください。");
+                return;
+            }
+            questionsAnswered++;
+            const correctAnswer = quizData[currentQuestionIndex].correctAnswer;
+            const { distance, matrix } = calculateLevenshteinDistance(userAnswer, correctAnswer);
+            totalScore += distance;
+
+            correctAnswerDisplay.innerHTML = `正解: <span class="font-bold text-green-700">${correctAnswer}</span>`;
+            distanceDisplay.innerHTML = `今回のスコア: <span class="text-blue-600">${distance}</span>`;
+            resultArea.style.display = 'block';
+            
+            displayMatrix(matrix, userAnswer, correctAnswer);
+            
+            if (questionsAnswered >= QUESTIONS_PER_GAME) {
+                nextQuestionBtn.textContent = '結果を見る';
+            } else {
+                nextQuestionBtn.textContent = '次の問題へ';
+            }
+
+            answerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'inline-block';
+        }
+
+        function handleNextStep() {
+             if (questionsAnswered >= QUESTIONS_PER_GAME) {
+                showFinalScore();
+            } else {
+                loadNextQuestion();
+            }
+        }
+
+        function showFinalScore() {
+            finalScoreEl.textContent = totalScore;
+            quizContainer.style.display = 'none';
+            finalScoreContainer.style.display = 'block';
+        }
+
+        // --- Event Listeners ---
+        answerBtn.addEventListener('click', checkAnswer);
+        nextQuestionBtn.addEventListener('click', handleNextStep);
+        restartBtn.addEventListener('click', startGame);
+
+        answerInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                if (answerBtn.style.display !== 'none') {
+                   checkAnswer();
+                } else if (nextQuestionBtn.style.display !== 'none') {
+                   handleNextStep();
+                }
+            }
+        });
+
+        // Initial load
+        window.addEventListener('load', startGame);
+    </script>
+</body>
+</html>
