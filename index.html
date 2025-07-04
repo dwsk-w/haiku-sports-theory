@@ -101,15 +101,16 @@
     <script>
         // --- Game State ---
         const quizData = [
-            { problem: "「正月のカラスが散り散りへあちらへ飛んでいったよ」by高野素十", correctAnswer: "ばらばらに飛んで向ふへ初鴉" },
-            { problem: "「アセビが咲いている傍の金堂の扉に私が触ったよ」by水原秋桜子", correctAnswer: "馬酔木咲く金堂の扉にわが触れぬ" },
-            { problem: "「機関車がゆっくりと止まった。その車輪のそばには夏草が生えていた」by山口誓子", correctAnswer: "夏草に気罐車の車輪来て止る" },
-            { problem: "「葛城山の裾野に寝釈迦像があるなあ」by阿波野青畝", correctAnswer: "葛城の山懐に寝釈迦かな" }
+            { problem: "「秋風が吹いている。茄子畑が紺色だ。」by高浜虚子", correctAnswer: "茄子畠は紺一色や秋の風" },
+            { problem: "「日のよく当たる手狭な家であるが、温かい冬の日だなあ。」by高浜虚子", correctAnswer: "冬ぬくし日当りよくて手狭くて" },
+            { problem: "「鳰がずっと浮いたり沈んだりしているので池に水輪が絶えないなあ。」by高浜虚子", correctAnswer: "浮き沈む鳰の波紋の絶え間なく" },
+            { problem: "「冬の木の傍で、鞄を開けてごそごそとモノを探している人がいる。」by高浜虚子", correctAnswer: "鞄あけ物探がす人冬木中" },
+            { problem: "「初夢を見たが、白いだけだった。」by高浜虚子", correctAnswer: "初夢の唯空白を存したり" }
         ];
         let currentQuestionIndex = -1;
         let totalScore = 0;
         let questionsAnswered = 0;
-        const QUESTIONS_PER_GAME = 4;
+        const QUESTIONS_PER_GAME = 5;
 
         // --- DOM Elements ---
         const quizContainer = document.getElementById('quiz-container');
